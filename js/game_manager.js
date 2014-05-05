@@ -18,6 +18,8 @@ GameManager.prototype.restart = function () {
   this.storageManager.clearGameState();
   this.actuator.continueGame(); // Clear the game won/lost message
   this.setup();
+  vectorPosition="normal";
+  changeColor("game-container","#bbada0");
 };
 
 // Keep playing after winning (allows going over 2048)
@@ -120,10 +122,13 @@ GameManager.prototype.prepareTiles = function () {
 };
 
 // Move a tile and its representation
+var count = 0;
+var countUntil=randomizator(2,10);
 GameManager.prototype.moveTile = function (tile, cell) {
   this.grid.cells[tile.x][tile.y] = null;
   this.grid.cells[cell.x][cell.y] = tile;
   tile.updatePosition(cell);
+  
 };
 
 // Move tiles on the grid in the specified direction
@@ -187,22 +192,66 @@ GameManager.prototype.move = function (direction) {
     }
 
     this.actuate();
+    
+    if(count>countUntil) {
+    	
+  	  if(vectorPosition=="normal") 
+  	  {
+  		vectorPosition="reversed";
+  		changeColor("game-container","red");}
+  	  else {
+  		vectorPosition="normal";
+  		changeColor("game-container","#bbada0");
+  	  }
+  	  
+  	changeVector();
+  	  count=0;
+  	  countUntil=randomizator(2,10);
+    } else
+    count++;
   }
+  
 };
 
 // Get the vector representing the chosen direction
-GameManager.prototype.getVector = function (direction) {
+var random = 1000;
+function randomizator(a,b)
+{
+    return Math.floor(Math.random()*b) + a;
+}
+function doTheRandom() {
+    random = randomizator(599000, 1009900);
+    setTimeout(doTheRandom, random); // 2-5 seconds
+}
+var map;
+var vectorPosition="normal";
+changeVector();
+function changeVector(){
+GameManager.prototype.getVector = function (direction,vector) {
   // Vectors representing tile movement
-  var map = {
-    2: { x: 0,  y: -1 }, // Up
-    3: { x: 1,  y: 0 },  // Right
-    0: { x: 0,  y: 1 },  // Down
-    1: { x: -1, y: 0 }   // Left
-  };
+  
+	if(vectorPosition=="normal"){
+		map={
+				0: { x: 0,  y: -1 }, // Up
+			    1: { x: 1,  y: 0 },  // Right
+			    2: { x: 0,  y: 1 },  // Down
+			    3: { x: -1, y: 0 }   // Left
+	}} else map={
+			2: { x: 0,  y: -1 }, // Up
+		    3: { x: 1,  y: 0 },  // Right
+		    0: { x: 0,  y: 1 },  // Down
+		    1: { x: -1, y: 0 }   // Left
+			}
+	
+  return map[direction];};
+}
 
-  return map[direction];
-};
-
+function changeColor(element,color) {
+    elements = document.getElementsByClassName(element);
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].style.backgroundColor=color;
+    }
+}
 // Build a list of positions to traverse in the right order
 GameManager.prototype.buildTraversals = function (vector) {
   var traversals = { x: [], y: [] };
@@ -265,6 +314,30 @@ GameManager.prototype.tileMatchesAvailable = function () {
   }
 
   return false;
+};
+
+Object.prototype.compare = function(Object) {
+	// if the other array is a falsy value, return
+	if (!array)
+		return false;
+
+	// compare lengths - can save a lot of time
+	if (this.length != array.length)
+		return false;
+
+	for ( var i = 0; i < this.length; i++) {
+		// Check if we have nested arrays
+		if (this[i] instanceof Array && array[i] instanceof Array) {
+			// recurse into the nested arrays	`
+			if (!this[i].compare(array[i]))
+				return false;
+		} else if (this[i] != array[i]) {
+			// Warning - two different object instances will never be equal:
+			// {x:20} != {x:20}
+			return false;
+		}
+	}
+	return true;
 };
 
 GameManager.prototype.positionsEqual = function (first, second) {
